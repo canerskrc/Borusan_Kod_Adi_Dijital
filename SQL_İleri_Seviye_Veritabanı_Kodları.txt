@@ -1,0 +1,406 @@
+-- *** TABLO OLUSTURMA/ Servis Kayitlari ***
+
+-- Zaman Boyutu
+CREATE TABLE Zaman_Boyutu (
+    ZamanID INT PRIMARY KEY,
+    Tarih DATE,
+    Yil INT,
+    Ay INT,
+    Gun INT,
+    GunAdi VARCHAR(10),
+    Ceyrek INT
+);
+
+-- Müşteri Boyutu
+CREATE TABLE Musteri_Boyutu (
+    MusteriID INT PRIMARY KEY,
+    MusteriAd VARCHAR(255),
+    Sehir VARCHAR(255),
+    Ulke VARCHAR(255),
+    Segment VARCHAR(50)
+);
+
+-- Ürün Boyutu
+CREATE TABLE Urun_Boyutu (
+    UrunID INT PRIMARY KEY,
+    UrunAd VARCHAR(255),
+    Kategori VARCHAR(100),
+    Marka VARCHAR(100)
+);
+
+-- Çalışan Boyutu
+CREATE TABLE Calisan_Boyutu (
+    CalisanID INT PRIMARY KEY,
+    CalisanAd VARCHAR(255),
+    Departman VARCHAR(100)
+);
+
+-- Servis Türü Boyutu
+CREATE TABLE Servis_Turu_Boyutu (
+    Sericteries INT PRIMARY KEY,
+    ServisAd VARCHAR(255),
+    ServisAciklama VARCHAR(255)
+);
+
+-- Satış Olgu Tablosu
+CREATE TABLE Satis_Olgu (
+    SatisID INT PRIMARY KEY,
+    ZamanID INT,
+    MusteriID INT,
+    UrunID INT,
+    CalisanID INT,
+    SatisMiktari INT,
+    SatisFiyati DECIMAL(10, 2),
+    FOREIGN KEY (ZamanID) REFERENCES Zaman_Boyutu(ZamanID),
+    FOREIGN KEY (MusteriID) REFERENCES Musteri_Boyutu(MusteriID),
+    FOREIGN KEY (UrunID) REFERENCES Urun_Boyutu(UrunID),
+    FOREIGN KEY (CalisanID) REFERENCES Calisan_Boyutu(CalisanID)
+);
+
+-- Servis Olgu Tablosu
+CREATE TABLE Servis_Olgu (
+    ServisID INT PRIMARY KEY,
+    ZamanID INT,
+    MusteriID INT,
+    UrunID INT,
+    CalisanID INT,
+    ServisTuruID INT,
+    ServisSuresi_Dakika INT,
+    ServisMaliyeti DECIMAL(10, 2),
+    FOREIGN KEY (ZamanID) REFERENCES Zaman_Boyutu(ZamanID),
+    FOREIGN KEY (MusteriID) REFERENCES Musteri_Boyutu(MusteriID),
+    FOREIGN KEY (UrunID) REFERENCES Urun_Boyutu(UrunID),
+    FOREIGN KEY (CalisanID) REFERENCES Calisan_Boyutu(CalisanID),
+    FOREIGN KEY (ServisTuruID) REFERENCES Servis_Turu_Boyutu(ServisTuruID)
+);
+
+-- *** VERİ EKLEME KODLARI ***
+
+INSERT INTO Zaman_Boyutu VALUES
+(20230101, '2023-01-01', 2023, 1, 1, 'Pazar', 1),
+(20230102, '2023-01-02', 2023, 1, 2, 'Pazartesi', 1),
+(20230103, '2023-01-03', 2023, 1, 3, 'Salı', 1),
+(20230104, '2023-01-04', 2023, 1, 4, 'Çarşamba', 1),
+(20230105, '2023-01-05', 2023, 1, 5, 'Perşembe', 1);
+
+INSERT INTO Musteri_Boyutu VALUES
+(1, 'Ahmet Yilmaz', 'İstanbul', 'Türkiye', 'Bireysel'),
+(2, 'Ayşe Demir', 'Ankara', 'Türkiye', 'Kurumsal'),
+(3, 'Mehmet Kaya', 'İzmir', 'Türkiye', 'Bireysel');
+
+INSERT INTO Urun_Boyutu VALUES
+(101, 'Laptop X', 'Elektronik', 'Marka A'),
+(102, 'Klavye', 'Aksesuar', 'Marka B'),
+(103, 'Mouse', 'Aksesuar', 'Marka B'),
+(104, 'Yazıcı', 'Elektronik', 'Marka C');
+
+INSERT INTO Calisan_Boyutu VALUES
+(1001, 'Mehmet Can', 'Satış'),
+(1002, 'Fatma Kara', 'Teknik Servis'),
+(1003, 'Zeynep Bulut', 'Satış');
+
+INSERT INTO Servis_Turu_Boyutu VALUES
+(1, 'Garanti İçi Onarım', 'Ücretsiz onarım'),
+(2, 'Garanti Dışı Onarım', 'Ücretli onarım'),
+(3, 'Periyodik Bakım', 'Düzenli bakım');
+
+-- Satış Olgu Verisi
+INSERT INTO Satis_Olgu VALUES
+(1, 20230101, 1, 101, 1001, 1, 15000.00), -- Ahmet, Laptop X, Mehmet sattı
+(2, 20230102, 2, 102, 1001, 2, 800.00),  -- Ayşe, Klavye, Mehmet sattı
+(3, 20230103, 1, 103, 1003, 3, 250.00),  -- Ahmet, Mouse, Zeynep sattı
+(4, 20230104, 3, 101, 1003, 1, 15000.00); -- Mehmet, Laptop X, Zeynep sattı
+
+-- Servis Olgu Verisi
+INSERT INTO Servis_Olgu VALUES
+(1, 20230103, 1, 101, 1002, 1, 45, 0.00), -- Ahmet, Laptop X, Garanti içi
+(2, 20230104, 2, 102, 1002, 2, 60, 150.00), -- Ayşe, Klavye, Garanti dışı
+(3, 20230105, 1, 103, 1002, 2, 30, 75.00); -- Ahmet, Mouse, Garanti dışı
+
+
+WITH [CTE_Adi] AS ( yeni alt sorgu SELECT .... ) 
+
+( ANA SORGU  / CTE Yi kullanır.)
+SELECT ..... FROM [CTE_adi_] ....
+
+
+____________________ İLK ÖRNEK ______________________
+
+
+
+WITH AylikSatis AS(
+  SELECT 
+  Tarih,
+  'Satış' AS Kaynak,
+  SUM(SatisMiktari * SatisFiyati) AS ToplamGelir
+  FROM Satis_Olgu so
+  JOIN Zaman_Boyutu zb ON so.ZamanID = zb.ZamanID
+  GROUP BY Tarih ),
+AylikServis AS(
+  SELECT
+  Tarih,
+  'Servis' AS Kaynak,
+  SUM(ServisMaliyeti) AS ToplamGelir
+  FROM Servis_Olgu seo
+  JOIN Zaman_Boyutu zb ON seo.ZamanID = zb.ZamanID
+  GROUP BY Tarih) 
+SELECT * FROM AylikSatis
+UNION ALL
+SELECT * FROM AylikServis
+ORDER BY Tarih, Kaynak;
+
+
+-- *** TABLO OLUSTURMA/ Servis Kayitlari ***
+
+-- Zaman Boyutu
+CREATE TABLE Zaman_Boyutu (
+    ZamanID INT PRIMARY KEY,
+    Tarih DATE,
+    Yil INT,
+    Ay INT,
+    Gun INT,
+    GunAdi VARCHAR(10),
+    Ceyrek INT
+);
+
+-- Müşteri Boyutu
+CREATE TABLE Musteri_Boyutu (
+    MusteriID INT PRIMARY KEY,
+    MusteriAd VARCHAR(255),
+    Sehir VARCHAR(255),
+    Ulke VARCHAR(255),
+    Segment VARCHAR(50)
+);
+
+-- Ürün Boyutu
+CREATE TABLE Urun_Boyutu (
+    UrunID INT PRIMARY KEY,
+    UrunAd VARCHAR(255),
+    Kategori VARCHAR(100),
+    Marka VARCHAR(100)
+);
+
+-- Çalışan Boyutu
+CREATE TABLE Calisan_Boyutu (
+    CalisanID INT PRIMARY KEY,
+    CalisanAd VARCHAR(255),
+    Departman VARCHAR(100)
+);
+
+-- Servis Türü Boyutu
+CREATE TABLE Servis_Turu_Boyutu (
+    ServisTuruID INT PRIMARY KEY,
+    ServisAd VARCHAR(255),
+    ServisAciklama VARCHAR(255)
+);
+
+-- Satış Olgu Tablosu
+CREATE TABLE Satis_Olgu (
+    SatisID INT PRIMARY KEY,
+    ZamanID INT,
+    MusteriID INT,
+    UrunID INT,
+    CalisanID INT,
+    SatisMiktari INT,
+    SatisFiyati DECIMAL(10, 2),
+    FOREIGN KEY (ZamanID) REFERENCES Zaman_Boyutu(ZamanID),
+    FOREIGN KEY (MusteriID) REFERENCES Musteri_Boyutu(MusteriID),
+    FOREIGN KEY (UrunID) REFERENCES Urun_Boyutu(UrunID),
+    FOREIGN KEY (CalisanID) REFERENCES Calisan_Boyutu(CalisanID)
+);
+
+-- Servis Olgu Tablosu
+CREATE TABLE Servis_Olgu (
+    ServisID INT PRIMARY KEY,
+    ZamanID INT,
+    MusteriID INT,
+    UrunID INT,
+    CalisanID INT,
+    ServisTuruID INT,
+    ServisSuresi_Dakika INT,
+    ServisMaliyeti DECIMAL(10, 2),
+    FOREIGN KEY (ZamanID) REFERENCES Zaman_Boyutu(ZamanID),
+    FOREIGN KEY (MusteriID) REFERENCES Musteri_Boyutu(MusteriID),
+    FOREIGN KEY (UrunID) REFERENCES Urun_Boyutu(UrunID),
+    FOREIGN KEY (CalisanID) REFERENCES Calisan_Boyutu(CalisanID),
+    FOREIGN KEY (ServisTuruID) REFERENCES Servis_Turu_Boyutu(ServisTuruID)
+);
+
+-- *** VERİ EKLEME KODLARI ***
+
+INSERT INTO Zaman_Boyutu VALUES
+(20230101, '2023-01-01', 2023, 1, 1, 'Pazar', 1),
+(20230102, '2023-01-02', 2023, 1, 2, 'Pazartesi', 1),
+(20230103, '2023-01-03', 2023, 1, 3, 'Salı', 1),
+(20230104, '2023-01-04', 2023, 1, 4, 'Çarşamba', 1),
+(20230105, '2023-01-05', 2023, 1, 5, 'Perşembe', 1);
+
+INSERT INTO Musteri_Boyutu VALUES
+(1, 'Ahmet Yilmaz', 'İstanbul', 'Türkiye', 'Bireysel'),
+(2, 'Ayşe Demir', 'Ankara', 'Türkiye', 'Kurumsal'),
+(3, 'Mehmet Kaya', 'İzmir', 'Türkiye', 'Bireysel');
+
+INSERT INTO Urun_Boyutu VALUES
+(101, 'Laptop X', 'Elektronik', 'Marka A'),
+(102, 'Klavye', 'Aksesuar', 'Marka B'),
+(103, 'Mouse', 'Aksesuar', 'Marka B'),
+(104, 'Yazıcı', 'Elektronik', 'Marka C');
+
+INSERT INTO Calisan_Boyutu VALUES
+(1001, 'Mehmet Can', 'Satış'),
+(1002, 'Fatma Kara', 'Teknik Servis'),
+(1002, 'Fatma Kara', 'Teknik Servis'),
+(1003, 'Zeynep Bulut', 'Satış');
+
+INSERT INTO Servis_Turu_Boyutu VALUES
+(1, 'Garanti İçi Onarım', 'Ücretsiz onarım'),
+(2, 'Garanti Dışı Onarım', 'Ücretli onarım'),
+(3, 'Periyodik Bakım', 'Düzenli bakım');
+
+-- Satış Olgu Verisi
+INSERT INTO Satis_Olgu VALUES
+(1, 20230101, 1, 101, 1001, 1, 15000.00), -- Ahmet, Laptop X, Mehmet sattı
+(2, 20230102, 2, 102, 1001, 2, 800.00),  -- Ayşe, Klavye, Mehmet sattı
+(3, 20230103, 1, 103, 1003, 3, 250.00),  -- Ahmet, Mouse, Zeynep sattı
+(4, 20230104, 3, 101, 1003, 1, 15000.00); -- Mehmet, Laptop X, Zeynep sattı
+
+-- Servis Olgu Verisi
+INSERT INTO Servis_Olgu VALUES
+(1, 20230103, 1, 101, 1002, 1, 45, 0.00), -- Ahmet, Laptop X, Garanti içi
+(2, 20230104, 2, 102, 1002, 2, 60, 150.00), -- Ayşe, Klavye, Garanti dışı
+(3, 20230105, 1, 103, 1002, 2, 30, 75.00); -- Ahmet, Mouse, Garanti dışı
+
+
+
+WITH MusteriHarcama AS (
+  SELECT 
+  MusteriID,
+  DATEDIFF(day, MAX(Tarih), GETDATE())AS Recency, --En son satın alınan tarihin üzerinden geçen gün sayısı 
+  COUNT(SatisID) AS Frequency, --Toplam Satın alma sayısı
+  SUM(SatisMiktari * SatisFiyati ) AS Monetary --Toplam harcama 
+  FROM 
+  Satis_Olgu so 
+  JOIN 
+  Zaman_Boyutu zb ON so.ZamanID = zb.ZamanID
+  GROUP BY 
+  MusteriID ),
+  
+RFMSkorlari AS (
+  SELECT
+  MusteriID,
+  NTILE(5)OVER (ORDER BY Recency ASC) AS R_Skor,
+  NTILE(5)OVER (ORDER BY Frequency DESC) AS F_Skor,
+  NTILE(5)OVER (ORDER BY Monetary DESC) AS M_Skor
+  FROM 
+  MusteriHarcama ) 
+  
+SELECT 
+ms.MusteriAd,
+rfm.R_skor,
+rfm.F_skor,
+rfm.M_skor,
+(rfm.R_skor + rfm.F_skor + rfm.M_Skor) AS ToplamSkor,
+CASE 
+WHEN rfm.R_skor >= 4 AND rfm.F_Skor >=4 AND rfm.M_Skor >= 4 THEN 'Şampiyon'
+WHEN rfm.R_skor >= 4 AND rfm.F_Skor >=3 THEN 'Sadık Müşteri'
+WHEN rfm.R_skor >= 3 AND rfm.F_Skor >=3 THEN 'Potansiyel Sadık'
+WHEN rfm.R_skor <= 2 AND rfm.F_Skor <=2 THEN 'Kaybedilecek Müşteri'
+ELSE 'Diğer'
+END AS MüsteriSegmenti 
+
+FROM RFMSkorlari rfm
+JOIN Musteri_Boyutu ms ON rfm.MusteriID = ms.MusteriID
+ORDER BY 
+ToplamSkor DESC; 
+
+WITH AylikCiro AS (
+  SELECT
+  zd.Yil,
+  zd.Ay,
+  cd.CalisanAd,
+  cd.Departman,
+  SUM(so.SatisFiyati * so.SatisMiktari ) AS AylikCiro
+  FROM 
+  Satis_Olgu so 
+  JOIN 
+  Zaman_Boyutu zd ON so.ZamanID = zd.ZamanID
+  JOIN 
+  Calisan_Boyutu cd ON so.CalisanID = cd.CalisanID
+  GROUP BY 
+  zd.Yil, zd.Ay, cd.CalisanAd, cd.Departman ) 
+ 
+
+SELECT
+Yil,
+Ay,
+CalisanAd,
+Departman,
+AylikCiro,
+AVG(AylikCiro) OVER (PARTITION BY Yil, Ay, Departman) AS DepartmanOrtalama,
+--Departman genelinde en yüksek aylık ciro hesabı
+MAX(AylikCiro) OVER (PARTITION BY Yil, Ay, Departman) AS DepartmanEnYuksek
+FROM AylikCiro
+ORDER BY 
+Yil, Ay, Departman, AylikCiro DESC;
+
+
+-- MV çalışma syntax yapısı 
+CREATE MATERIALIZED VIEW [view_adı] AS 
+SELECT....
+FROM ....
+GROUP BY ..... ; 
+
+-- E-Ticaret Platformunda Stok durumu, İade oranları ve ürün statüsünü gösteren bir kontrolo paneli 
+-- Ancak sorgular çok uzun sürüyor.( 20sn) 
+-- 5 dk' da bir verileri güncelleyen bir MV Kurgusu 
+
+
+CREATE MATERIALIZED VIEW stock_and_order_summary AS 
+SELECT
+product_id,
+SUM(quantity_in_stock) AS current_stock_level,
+COUNT(CASE WHEN order_status = 'işleniyor' THEN 1 END) AS orders_in_progress,
+COUNT(CASE WHEN order_status = 'iade' THEN 1 END) AS otal_returns
+FROM 
+products p 
+JOIN 
+order o ON p.product_id= o.product_id
+GROUP BY product_id
+
+--CRON JOB Kurgusu * = Her anlamına gelir ( / =Her ...'da bir anlamına gelir)  
+
+
+0 3 * * * psql -U username -d database -c 
+-- her ayın her günü her haftanın her günü saat 03:00'da 
+REFRESH MV  stock_and_order_summary;
+
+*/5 9-18 * * 1-5 psql -U username -d database -c 
+-- */5 = Dakika alanında her 5 dk'da bir 
+-- 9-18 = Saat alanında sabah9 akşam 6 aralığını ifade eder.
+-- * * = Ayın gün alanı = ayın her zamanını ifade eder. 
+-- 1-5 =  Haftanın günü =  Pazartesiden Cumaya 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
